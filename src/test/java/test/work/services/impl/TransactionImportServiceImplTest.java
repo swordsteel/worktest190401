@@ -81,4 +81,15 @@ class TransactionImportServiceImplTest {
 		assertEquals("Error occurred while loading file: bad_file.csv", loggingEvent.getFormattedMessage());
 	}
 
+	@Test
+	void whenPathIsNull_thenExpectFalse_andErrorIsLogged() throws IOException {
+		Path processFile = null;
+		assertFalse(getTransactionImportService().process(processFile));
+
+		verify(mockAppender).doAppend(captorLoggingEvent.capture());
+		final LoggingEvent loggingEvent = captorLoggingEvent.getValue();
+		assertEquals(loggingEvent.getLevel(), Level.ERROR);
+		assertEquals("Import path cannot be null", loggingEvent.getFormattedMessage());
+	}
+
 }

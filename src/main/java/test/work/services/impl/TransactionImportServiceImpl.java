@@ -25,8 +25,11 @@ public class TransactionImportServiceImpl implements TransactionImportService {
 		}
 		catch(IOException e) {
 			LOGGER.error("Error occurred while loading file: {}", fileToImport.getFileName(), e);
-			return false;
 		}
+		catch(NullPointerException e) {
+			LOGGER.error("Import path cannot be null", e);
+		}
+		return false;
 	}
 
 }
