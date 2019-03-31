@@ -10,7 +10,7 @@ import java.util.Optional;
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Integer> {
 
-	@Query("select u from Transaction u where u.transactionID = ?1")
-	Optional<Transaction> findByNK(int transactionID);
+	@Query("select u from Transaction u where u.transaction = ?1")
+	Optional<Transaction> findByNK(int transaction);
 
 }

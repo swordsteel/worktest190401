@@ -33,7 +33,6 @@ import test.work.services.TransactionImportService;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -112,7 +111,6 @@ class TransactionImportServiceImplTest {
 	void whenPathIsBad_thenExpectFalse_andErrorIsLogged() throws IOException {
 		Path processFile = Paths.get("files/bad_file.csv");
 		assertFalse(getTransactionImportService().process(processFile));
-
 		verify(mockAppender).doAppend(captorLoggingEvent.capture());
 		final LoggingEvent loggingEvent = captorLoggingEvent.getValue();
 		assertEquals(loggingEvent.getLevel(), Level.ERROR);
@@ -121,9 +119,7 @@ class TransactionImportServiceImplTest {
 
 	@Test
 	void whenPathIsNull_thenExpectFalse_andErrorIsLogged() throws IOException {
-		Path processFile = null;
-		assertFalse(getTransactionImportService().process(processFile));
-
+		assertFalse(getTransactionImportService().process(null));
 		verify(mockAppender).doAppend(captorLoggingEvent.capture());
 		final LoggingEvent loggingEvent = captorLoggingEvent.getValue();
 		assertEquals(loggingEvent.getLevel(), Level.ERROR);
@@ -162,10 +158,8 @@ class TransactionImportServiceImplTest {
 	void whenFileHaveValidCSV_thenTransactionIsCreatedAndSaved_andDescriptionIsCreatedAndSaved() throws IOException {
 		Path processFile = new ClassPathResource("files/tiny.csv").getFile().toPath();
 		getTransactionImportService().process(processFile);
-
 		verify(descriptionRepository, atLeastOnce()).saveAll(any());
 		assertEquals(1, noDescriptions);
-
 		verify(transactionRepository, atLeastOnce()).saveAll(any());
 		assertEquals(1, noTransactions);
 	}
@@ -174,9 +168,7 @@ class TransactionImportServiceImplTest {
 	void whenFileHaveTwoRecordsWithSameDescription_thenOneDescription_andTwoTransactions() throws IOException {
 		Path processFile = new ClassPathResource("files/twoRecordsSameDescription.csv").getFile().toPath();
 		getTransactionImportService().process(processFile);
-
 		assertEquals(1, noDescriptions);
-
 		assertEquals(2, noTransactions);
 	}
 
@@ -185,9 +177,7 @@ class TransactionImportServiceImplTest {
 		when(descriptionRepository.findByNK(any())).thenReturn(Optional.of(new Description()));
 		Path processFile = new ClassPathResource("files/tiny.csv").getFile().toPath();
 		getTransactionImportService().process(processFile);
-
 		assertEquals(0, noDescriptions);
-
 		assertEquals(1, noTransactions);
 	}
 
