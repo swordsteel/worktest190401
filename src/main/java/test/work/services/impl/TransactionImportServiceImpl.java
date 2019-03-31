@@ -24,6 +24,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import static java.nio.file.Files.newBufferedReader;
 import static test.work.services.TransactionImportService.validTransactionAmount;
@@ -129,6 +130,10 @@ public class TransactionImportServiceImpl implements TransactionImportService {
 	}
 
 	protected Description makeTransactionDescription(CSVRecord record, ImportCSV importCSV) {
+		Optional<Description> findDescription = getDescriptionRepository().findByNK(record.get("description"));
+		if(findDescription.isPresent()) {
+			return findDescription.get();
+		}
 		for(Description description : importCSV.getDescriptions()) {
 			if(description.getDescription().equals(record.get("description"))) {
 				return description;

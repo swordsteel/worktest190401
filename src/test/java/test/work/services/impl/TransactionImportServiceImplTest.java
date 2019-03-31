@@ -177,4 +177,15 @@ class TransactionImportServiceImplTest {
 		assertEquals(2, noTransactions);
 	}
 
+	@Test
+	void whenDescriptionInDatabase_thenOnlyOneTransactionToSave() throws IOException {
+		when(descriptionRepository.findByNK(any())).thenReturn(Optional.of(new Description()));
+		Path processFile = new ClassPathResource("files/tiny.csv").getFile().toPath();
+		getTransactionImportService().process(processFile);
+
+		assertEquals(0, noDescriptions);
+
+		assertEquals(1, noTransactions);
+	}
+
 }
