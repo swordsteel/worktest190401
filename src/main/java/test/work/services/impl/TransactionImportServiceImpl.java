@@ -100,13 +100,13 @@ public class TransactionImportServiceImpl implements TransactionImportService {
 				int id = makeTransactionID(record);
 				Date date = makeTransactionDate(record);
 				long amount = makeTransactionAmount(record);
-				if(getTransactionRepository().findByNK(id).isPresent()) {
+				if(idRegistered(importCSV, id)) {
 					LOGGER.error(
 							"Transaction already registered. Id {} in file {}",
 							id,
 							importCSV.getBatch().getFilename()
 					);
-					return;
+					continue;
 				}
 				Description description = makeTransactionDescription(record, importCSV);
 				importCSV.getTransactions().add(new Transaction(id, date, amount, description, importCSV.getBatch()));
@@ -120,6 +120,18 @@ public class TransactionImportServiceImpl implements TransactionImportService {
 				);
 			}
 		}
+	}
+
+	protected boolean idRegistered(ImportCSV importCSV, int id) {
+		if(getTransactionRepository().findByNK(id).isPresent()) {
+			return true;
+		}
+		for(Transaction transaction : importCSV.getTransactions()) {
+			if(transaction.getTransaction().equals(id)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	protected long makeTransactionAmount(CSVRecord record) {

@@ -2,6 +2,7 @@ package test.work.entities;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.NaturalId;
 
 import javax.persistence.Column;
@@ -30,7 +31,7 @@ public class Transaction {
 	Date date;
 	private Long amount;
 	@Column(nullable = false)
-	@Temporal(TemporalType.TIMESTAMP)
+	@CreationTimestamp
 	private Date Creation;
 	@JoinColumn
 	@ManyToOne(fetch = FetchType.LAZY)
