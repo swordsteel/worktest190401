@@ -212,4 +212,12 @@ class TransactionImportServiceImplTest {
 		verify(mockAppender, times(2)).doAppend(captorLoggingEvent.capture());
 	}
 
+	@Test
+	void whenIdTest_thenOneGood_andTwoLoggedErrors() throws IOException {
+		Path processFile = new ClassPathResource("files/idTest.csv").getFile().toPath();
+		getTransactionImportService().process(processFile);
+		assertEquals(1, noTransactions);
+		verify(mockAppender, times(2)).doAppend(captorLoggingEvent.capture());
+	}
+
 }
