@@ -16,8 +16,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import test.work.entities.Batch;
+import test.work.repositories.BatchRepository;
 import test.work.services.TransactionImportService;
 
 import java.io.IOException;
@@ -27,10 +32,13 @@ import java.nio.file.Paths;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
 @Getter
 @SpringBootTest
+@Transactional(propagation = Propagation.REQUIRED)
 class TransactionImportServiceImplTest {
 
 	@TestConfiguration
@@ -44,11 +52,12 @@ class TransactionImportServiceImplTest {
 
 	}
 
-
 	@Mock
 	private Appender<ILoggingEvent> mockAppender;
 	@Captor
 	private ArgumentCaptor<LoggingEvent> captorLoggingEvent;
+	@MockBean
+	private BatchRepository batchRepository;
 	private Logger logger;
 	@Autowired
 	private TransactionImportService transactionImportService;
@@ -90,6 +99,13 @@ class TransactionImportServiceImplTest {
 		final LoggingEvent loggingEvent = captorLoggingEvent.getValue();
 		assertEquals(loggingEvent.getLevel(), Level.ERROR);
 		assertEquals("Import path cannot be null", loggingEvent.getFormattedMessage());
+	}
+
+	@Test
+	void whenFileProcess_thenBatchIsCreatedAndSaved() throws IOException {
+		Path processFile = new ClassPathResource("files/tiny.csv").getFile().toPath();
+		getTransactionImportService().process(processFile);
+		verify(batchRepository, atLeastOnce()).save(any(Batch.class));
 	}
 
 }
