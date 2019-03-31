@@ -167,4 +167,14 @@ class TransactionImportServiceImplTest {
 		assertEquals(1, noTransactions);
 	}
 
+	@Test
+	void whenFileHaveTwoRecordsWithSameDescription_thenOneDescription_andTwoTransactions() throws IOException {
+		Path processFile = new ClassPathResource("files/twoRecordsSameDescription.csv").getFile().toPath();
+		getTransactionImportService().process(processFile);
+
+		assertEquals(1, noDescriptions);
+
+		assertEquals(2, noTransactions);
+	}
+
 }

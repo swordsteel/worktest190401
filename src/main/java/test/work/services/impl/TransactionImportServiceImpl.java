@@ -129,6 +129,11 @@ public class TransactionImportServiceImpl implements TransactionImportService {
 	}
 
 	protected Description makeTransactionDescription(CSVRecord record, ImportCSV importCSV) {
+		for(Description description : importCSV.getDescriptions()) {
+			if(description.getDescription().equals(record.get("description"))) {
+				return description;
+			}
+		}
 		Description description = new Description(record.get("description"), importCSV.getBatch());
 		importCSV.getDescriptions().add(description);
 		return description;
