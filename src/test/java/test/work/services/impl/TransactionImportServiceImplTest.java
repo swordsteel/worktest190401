@@ -188,4 +188,11 @@ class TransactionImportServiceImplTest {
 		assertEquals(1, noTransactions);
 	}
 
+	@Test
+	void whenDescriptionTest_thenExpectTrue() throws IOException {
+		Path processFile = new ClassPathResource("files/descriptionTest.csv").getFile().toPath();
+		getTransactionImportService().process(processFile);
+		assertEquals(3, noDescriptions);
+	}
+
 }
