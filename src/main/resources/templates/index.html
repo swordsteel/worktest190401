@@ -5,6 +5,30 @@
     <title th:text="#{app.title}">AppTitle</title>
 </head>
 <body>
-<h2 th:text="#{index.page.title}">AppTitle</h2>
+<h2 th:text="#{index.page.title}">PagesTitle</h2>
+<table>
+    <thead>
+    <tr>
+        <th th:text="#{transaction.id}">TransactionID</th>
+        <th th:text="#{transaction.date}">TransactionDate</th>
+        <th th:text="#{transaction.amount}">TransactionAmount</th>
+        <th th:text="#{transaction.description}">TransactionDescription</th>
+        <th th:text="#{batch.date.start}">BatchStartDate</th>
+        <th th:text="#{batch.date.end}">BatchEndDate</th>
+        <th th:text="#{batch.file}">BatchFilename</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="transaction : ${transactions}">
+        <td th:text="${transaction.transaction}">Id</td>
+        <td th:text="${transaction.date}">Date</td>
+        <td th:text="${transaction.formatAmount()}">0.00</td>
+        <td th:text="${transaction.description.description}">Description</td>
+        <td th:text="${transaction.batch.startDate}">startDate</td>
+        <td th:text="${transaction.batch.endDate}">endDate</td>
+        <td th:text="${transaction.batch.filename}">filename</td>
+    </tr>
+    </tbody>
+</table>
 </body>
 </html>

@@ -14,6 +14,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import java.text.DecimalFormat;
 import java.util.Date;
 
 @Data
@@ -46,6 +47,10 @@ public class Transaction {
 		this.amount = amount;
 		this.description = description;
 		this.batch = batch;
+	}
+
+	public String formatAmount() {
+		return String.format("%.02f",amount.floatValue()/100);
 	}
 
 }
