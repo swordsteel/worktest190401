@@ -99,4 +99,14 @@ class TransactionFileServiceImplTest {
 		assertEquals("Error occurred while listing file in: /bad-folder", loggingEvent.getFormattedMessage());
 	}
 
+	@Test
+	void whenPathIsNull_thenErrorLogged() {
+		jimfsWatchFolder = null;
+		((TransactionFileServiceImpl) transactionFileService).getFilesInWatchFolder().get();
+		verify(mockAppender).doAppend(captorLoggingEvent.capture());
+		final LoggingEvent loggingEvent = captorLoggingEvent.getValue();
+		assertEquals(loggingEvent.getLevel(), Level.ERROR);
+		assertEquals("Path cannot be null", loggingEvent.getFormattedMessage());
+	}
+
 }

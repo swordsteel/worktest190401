@@ -35,8 +35,11 @@ public class TransactionFileServiceImpl implements TransactionFileService {
 		}
 		catch(IOException e) {
 			LOGGER.error("Error occurred while listing file in: {}", getWatchFolder(), e);
-			return Stream.of();
 		}
+		catch(NullPointerException e) {
+			LOGGER.error("Path cannot be null", e);
+		}
+		return Stream.of();
 	};
 
 	@Override
