@@ -202,4 +202,13 @@ class TransactionFileServiceImplTest {
 		assertEquals(1, Files.list(jimfsArchiveFolder).count());
 	}
 
+	@Test
+	void whenArchivingBadImport_thenFileIsMovedToInvalidFolder() throws IOException {
+		when(transactionImportService.process(any())).thenReturn(false);
+		Path source = copyResourceFile("img.jpg", jimfsProcessFolder);
+		((TransactionFileServiceImpl) transactionFileService).getFileArchiving().accept(source);
+		assertEquals(0, Files.list(jimfsProcessFolder).count());
+		assertEquals(1, Files.list(jimfsInvalidFolder).count());
+	}
+
 }
