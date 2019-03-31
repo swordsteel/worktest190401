@@ -232,4 +232,18 @@ class TransactionFileServiceImplTest {
 		assertEquals("Path cannot be null", loggingEvent.getFormattedMessage());
 	}
 
+	@Test
+	public void whenScanFolder_thenAllFilesInWatchAreProcessedAndArchived() throws IOException {
+		Files.copy(new ClassPathResource("files/img.jpg").getFile().toPath(), jimfsWatchFolder.resolve("img1.jpg"));
+		Files.copy(new ClassPathResource("files/img.jpg").getFile().toPath(), jimfsWatchFolder.resolve("img2.jpg"));
+		when(transactionImportService.process(any(Path.class)))
+				.thenReturn(true)
+				.thenReturn(false);
+		transactionFileService.scanFolder();
+		assertEquals(0, Files.list(jimfsWatchFolder).count());
+		assertEquals(0, Files.list(jimfsProcessFolder).count());
+		assertEquals(1, Files.list(jimfsArchiveFolder).count());
+		assertEquals(1, Files.list(jimfsInvalidFolder).count());
+	}
+
 }
