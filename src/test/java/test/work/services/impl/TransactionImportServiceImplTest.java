@@ -28,6 +28,7 @@ import test.work.services.TransactionImportService;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -35,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @Getter
 @SpringBootTest
@@ -106,6 +108,17 @@ class TransactionImportServiceImplTest {
 		Path processFile = new ClassPathResource("files/tiny.csv").getFile().toPath();
 		getTransactionImportService().process(processFile);
 		verify(batchRepository, atLeastOnce()).save(any(Batch.class));
+	}
+
+	@Test
+	void whenFileAlreadyProcessed_thenErrorIsLogged() throws IOException {
+		when(batchRepository.findByNK(any())).thenReturn(Optional.of(new Batch()));
+		Path processFile = new ClassPathResource("files/tiny.csv").getFile().toPath();
+		getTransactionImportService().process(processFile);
+		verify(mockAppender).doAppend(captorLoggingEvent.capture());
+		final LoggingEvent loggingEvent = captorLoggingEvent.getValue();
+		assertEquals(loggingEvent.getLevel(), Level.ERROR);
+		assertEquals("File by name tiny.csv are already processed", loggingEvent.getFormattedMessage());
 	}
 
 }

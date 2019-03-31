@@ -29,6 +29,10 @@ public class TransactionImportServiceImpl implements TransactionImportService {
 	@Override
 	public boolean process(Path fileToImport) {
 		try(BufferedReader bufferedReader = newBufferedReader(fileToImport)) {
+			if(getBatchRepository().findByNK(fileToImport.getFileName().toString()).isPresent()) {
+				LOGGER.error("File by name {} are already processed", fileToImport.getFileName());
+				return false;
+			}
 			Batch batch = new Batch(fileToImport.getFileName().toString(), Date.from(Instant.now()));
 			getBatchRepository().save(batch);
 			return true;
