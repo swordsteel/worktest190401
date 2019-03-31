@@ -6,6 +6,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
 import lombok.Getter;
+import org.apache.commons.csv.CSVParser;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,12 +23,16 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import test.work.entities.Batch;
+import test.work.entities.Description;
 import test.work.repositories.BatchRepository;
+import test.work.repositories.DescriptionRepository;
+import test.work.repositories.TransactionRepository;
 import test.work.services.TransactionImportService;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -43,12 +48,27 @@ import static org.mockito.Mockito.when;
 @Transactional(propagation = Propagation.REQUIRED)
 class TransactionImportServiceImplTest {
 
+	public static int noDescriptions;
+	public static int noTransactions;
+
 	@TestConfiguration
 	static class TransactionImportServiceImplTestContextConfiguration {
 
 		@Bean
 		public TransactionImportService transactionImportService() {
 			return new TransactionImportServiceImpl() {
+
+				public long nextPK = 1;
+
+				protected void processCSV(CSVParser csvParser, ImportCSV importCSV) {
+					super.processCSV(csvParser, importCSV);
+					importCSV.getBatch().setId(nextPK++);
+					importCSV.getDescriptions().forEach(description -> description.setId(nextPK++));
+					importCSV.getTransactions().forEach(transaction -> transaction.setId(nextPK++));
+					noDescriptions = importCSV.getDescriptions().size();
+					noTransactions = importCSV.getTransactions().size();
+				}
+
 			};
 		}
 
@@ -60,7 +80,11 @@ class TransactionImportServiceImplTest {
 	private ArgumentCaptor<LoggingEvent> captorLoggingEvent;
 	@MockBean
 	private BatchRepository batchRepository;
+	@MockBean
+	DescriptionRepository descriptionRepository;
 	private Logger logger;
+	@MockBean
+	TransactionRepository transactionRepository;
 	@Autowired
 	private TransactionImportService transactionImportService;
 
@@ -129,6 +153,18 @@ class TransactionImportServiceImplTest {
 		final LoggingEvent loggingEvent = captorLoggingEvent.getValue();
 		assertEquals(loggingEvent.getLevel(), Level.ERROR);
 		assertEquals("Not a valid CSV format in file: img.jpg", loggingEvent.getFormattedMessage());
+	}
+
+	@Test
+	void whenFileHaveValidCSV_thenTransactionIsCreatedAndSaved_andDescriptionIsCreatedAndSaved() throws IOException {
+		Path processFile = new ClassPathResource("files/tiny.csv").getFile().toPath();
+		getTransactionImportService().process(processFile);
+
+		verify(descriptionRepository, atLeastOnce()).saveAll(any());
+		assertEquals(1, noDescriptions);
+
+		verify(transactionRepository, atLeastOnce()).saveAll(any());
+		assertEquals(1, noTransactions);
 	}
 
 }
