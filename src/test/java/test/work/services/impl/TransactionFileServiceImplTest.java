@@ -211,4 +211,15 @@ class TransactionFileServiceImplTest {
 		assertEquals(1, Files.list(jimfsInvalidFolder).count());
 	}
 
+	@Test
+	void whenArchivingBadPath_thenErrorLogged() throws IOException {
+		when(transactionImportService.process(any())).thenReturn(true);
+		Path source = jimfsProcessFolder.resolve("img.jpg");
+		((TransactionFileServiceImpl) transactionFileService).getFileArchiving().accept(source);
+		verify(mockAppender).doAppend(captorLoggingEvent.capture());
+		final LoggingEvent loggingEvent = captorLoggingEvent.getValue();
+		assertEquals(loggingEvent.getLevel(), Level.ERROR);
+		assertEquals("Error occurred while moving file /process/img.jpg to folder /process", loggingEvent.getFormattedMessage());
+	}
+
 }

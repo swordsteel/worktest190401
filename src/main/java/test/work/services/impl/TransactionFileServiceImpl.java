@@ -68,6 +68,12 @@ public class TransactionFileServiceImpl implements TransactionFileService {
 			}
 		}
 		catch(IOException e) {
+			LOGGER.error(
+					"Error occurred while moving file {} to folder {}",
+					source,
+					importStatus? getProcessFolder() : getInvalidFolder(),
+					e
+			);
 		}
 	};
 
