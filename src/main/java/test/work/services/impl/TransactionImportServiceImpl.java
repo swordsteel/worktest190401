@@ -34,7 +34,7 @@ import static test.work.services.TransactionImportService.validTransactionAmount
 public class TransactionImportServiceImpl implements TransactionImportService {
 
 	private static final CSVFormat CSV_FORMAT = CSVFormat.DEFAULT.withHeader("id", "date", "description", "amount");
-	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy");
+	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yy/MM/dd");
 	private static final Logger LOGGER = LoggerFactory.getLogger(TransactionImportServiceImpl.class);
 
 	@Getter
@@ -76,6 +76,7 @@ public class TransactionImportServiceImpl implements TransactionImportService {
 			processCSV(csvParser, importCSV);
 			importCSV.getBatch().setTotalNumberOfRows(importCSV.getRows());
 			importCSV.getBatch().setNumberOfNewTrans(importCSV.getTransactions().size());
+			importCSV.getBatch().setEndDate(Date.from(Instant.now()));
 			getBatchRepository().save(importCSV.getBatch());
 			getDescriptionRepository().saveAll(importCSV.getDescriptions());
 			getTransactionRepository().saveAll(importCSV.getTransactions());
