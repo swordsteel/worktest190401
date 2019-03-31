@@ -31,6 +31,7 @@ import java.nio.file.Path;
 import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.verify;
 
 @Getter
@@ -137,6 +138,16 @@ class TransactionFileServiceImplTest {
 		Path target = jimfsProcessFolder.resolve("img.jpg");
 		Path newPath = ((TransactionFileServiceImpl) transactionFileService).getFileProcessing().apply(source);
 		assertEquals(target, newPath);
+	}
+
+	@Test
+	void whenWatchFolderProcessingBadPath_thenExpectNull_andErrorLogged() {
+		Path source = jimfsWatchFolder.resolve("img.jpg");
+		assertNull(((TransactionFileServiceImpl) transactionFileService).getFileProcessing().apply(source));
+		verify(mockAppender).doAppend(captorLoggingEvent.capture());
+		final LoggingEvent loggingEvent = captorLoggingEvent.getValue();
+		assertEquals(loggingEvent.getLevel(), Level.ERROR);
+		assertEquals("Error occurred while moving file /watch/img.jpg to folder /process", loggingEvent.getFormattedMessage());
 	}
 
 }

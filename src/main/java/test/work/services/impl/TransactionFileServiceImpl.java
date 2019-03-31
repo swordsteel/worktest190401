@@ -43,6 +43,7 @@ public class TransactionFileServiceImpl implements TransactionFileService {
 			return Files.move(source, getProcessTargetPath().apply(source));
 		}
 		catch(IOException e) {
+			LOGGER.error("Error occurred while moving file {} to folder {}", source, getProcessFolder(), e);
 			return null;
 		}
 	};
