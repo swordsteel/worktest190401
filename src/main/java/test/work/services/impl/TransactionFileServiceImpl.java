@@ -75,6 +75,9 @@ public class TransactionFileServiceImpl implements TransactionFileService {
 					e
 			);
 		}
+		catch(NullPointerException e) {
+			LOGGER.error("Path cannot be null", e);
+		}
 	};
 
 	private Function<Path, Path> fileProcessing = source -> {
