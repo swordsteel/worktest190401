@@ -121,4 +121,14 @@ class TransactionImportServiceImplTest {
 		assertEquals("File by name tiny.csv are already processed", loggingEvent.getFormattedMessage());
 	}
 
+	@Test
+	void whenFileIsNotCSV_thenErrorIsLogged() throws IOException {
+		Path processFile = new ClassPathResource("files/img.jpg").getFile().toPath();
+		getTransactionImportService().process(processFile);
+		verify(mockAppender).doAppend(captorLoggingEvent.capture());
+		final LoggingEvent loggingEvent = captorLoggingEvent.getValue();
+		assertEquals(loggingEvent.getLevel(), Level.ERROR);
+		assertEquals("Not a valid CSV format in file: img.jpg", loggingEvent.getFormattedMessage());
+	}
+
 }
