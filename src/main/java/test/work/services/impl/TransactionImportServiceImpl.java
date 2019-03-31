@@ -112,6 +112,12 @@ public class TransactionImportServiceImpl implements TransactionImportService {
 				importCSV.getTransactions().add(new Transaction(id, date, amount, description, importCSV.getBatch()));
 			}
 			catch(IllegalArgumentException | ParseException e) {
+				LOGGER.error(
+						"Invalid transaction record. Record number {} in file {}. Exception: {}",
+						record.getRecordNumber(),
+						importCSV.getBatch().getFilename(),
+						e.getMessage()
+				);
 			}
 		}
 	}

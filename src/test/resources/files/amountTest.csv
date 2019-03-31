@@ -1,0 +1,11 @@
+1030,19/3/31,amount Good,123.45
+1031,19/3/31,amount Good,+123.45
+1032,19/3/31,amount Good,-123.45
+1033,19/3/31,amount Bad,123,45
+1034,19/3/31,amount Bad,123
+1035,19/3/31,amount Bad,123,5
+1036,19/3/31,amount Bad,123.5
+1037,19/3/31,amount Bad,12a.5
+1038,19/3/31,amount Bad,123.a0
+1039,19/3/31,amount Bad,a
+1040,19/3/31,amount Bad,
