@@ -19,20 +19,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.io.ClassPathResource;
 import test.work.services.TransactionFileService;
+import test.work.services.TransactionImportService;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @Getter
 @PropertySource("classpath:transaction.properties")
@@ -45,6 +51,22 @@ class TransactionFileServiceImplTest {
 		@Bean
 		public TransactionFileService transactionFileService() {
 			return new TransactionFileServiceImpl() {
+
+				@Override
+				public Comparator<Path> getSortByTimeModified() {
+					// Bug jimfs UnsupportedOperationException with Path::toFile
+					return Comparator.comparingLong(path -> new File(path.toString()).lastModified());
+				}
+
+				@Override
+				public Path getArchiveFolder() {
+					return TransactionFileServiceImplTest.jimfsArchiveFolder;
+				}
+
+				@Override
+				public Path getInvalidFolder() {
+					return TransactionFileServiceImplTest.jimfsInvalidFolder;
+				}
 
 				@Override
 				public Path getProcessFolder() {
@@ -66,6 +88,8 @@ class TransactionFileServiceImplTest {
 
 	}
 
+	private static Path jimfsArchiveFolder;
+	private static Path jimfsInvalidFolder;
 	private static Path jimfsProcessFolder;
 	private static Path jimfsWatchFolder;
 
@@ -75,12 +99,18 @@ class TransactionFileServiceImplTest {
 	private Appender<ILoggingEvent> mockAppender;
 	private FileSystem fileSystem;
 	private Logger logger;
+	@Value("${folder.archive}")
+	private String archiveFolder;
+	@Value("${folder.invalid}")
+	private String invalidFolder;
 	@Value("${folder.process}")
 	private String processFolder;
 	@Value("${folder.watch}")
 	private String watchFolder;
 	@Autowired
 	private TransactionFileService transactionFileService;
+	@MockBean
+	private TransactionImportService transactionImportService;
 
 	@BeforeEach
 	void setUp() throws IOException {
@@ -91,6 +121,10 @@ class TransactionFileServiceImplTest {
 		Files.createDirectory(jimfsWatchFolder);
 		jimfsProcessFolder = fileSystem.getPath(processFolder);
 		Files.createDirectory(jimfsProcessFolder);
+		jimfsArchiveFolder = fileSystem.getPath(archiveFolder);
+		Files.createDirectory(jimfsArchiveFolder);
+		jimfsInvalidFolder = fileSystem.getPath(invalidFolder);
+		Files.createDirectory(jimfsInvalidFolder);
 	}
 
 	@AfterEach
@@ -157,6 +191,15 @@ class TransactionFileServiceImplTest {
 		final LoggingEvent loggingEvent = captorLoggingEvent.getValue();
 		assertEquals(loggingEvent.getLevel(), Level.ERROR);
 		assertEquals("Path cannot be null", loggingEvent.getFormattedMessage());
+	}
+
+	@Test
+	void whenArchivingGoodImport_thenFileIsMovedToArchiveFolder() throws IOException {
+		when(transactionImportService.process(any())).thenReturn(true);
+		Path source = copyResourceFile("img.jpg", jimfsProcessFolder);
+		((TransactionFileServiceImpl) transactionFileService).getFileArchiving().accept(source);
+		assertEquals(0, Files.list(jimfsProcessFolder).count());
+		assertEquals(1, Files.list(jimfsArchiveFolder).count());
 	}
 
 }

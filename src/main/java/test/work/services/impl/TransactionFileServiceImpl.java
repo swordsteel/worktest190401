@@ -3,15 +3,19 @@ package test.work.services.impl;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import test.work.services.TransactionFileService;
+import test.work.services.TransactionImportService;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Comparator;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -23,8 +27,22 @@ public class TransactionFileServiceImpl implements TransactionFileService {
 
 	protected static final Logger LOGGER = LoggerFactory.getLogger(TransactionFileServiceImpl.class);
 
+	private Path archiveFolder;
+	private Path invalidFolder;
 	private Path processFolder;
 	private Path watchFolder;
+	@Autowired
+	private TransactionImportService transactionImportService;
+
+	@Value("${folder.archive}")
+	private void setArchiveFolder(String path) {
+		archiveFolder = Paths.get(path);
+	}
+
+	@Value("${folder.invalid}")
+	private void setInvalidFolder(String path) {
+		invalidFolder = Paths.get(path);
+	}
 
 	@Value("${folder.process}")
 	private void setProcessFolder(String path) {
@@ -36,7 +54,22 @@ public class TransactionFileServiceImpl implements TransactionFileService {
 		watchFolder = Paths.get(path);
 	}
 
+	private Comparator<Path> sortByTimeModified = Comparator.comparingLong(path -> path.toFile().lastModified());
+
 	private Supplier<String> prefix = defaultPrefix;
+
+	private Consumer<Path> fileArchiving = source -> {
+		boolean importStatus = getTransactionImportService().process(source);
+		try {
+			if(importStatus) {
+				Files.move(source, getArchiveFolder().resolve(source.getFileName()));
+			} else {
+				Files.move(source, getInvalidFolder().resolve(source.getFileName()));
+			}
+		}
+		catch(IOException e) {
+		}
+	};
 
 	private Function<Path, Path> fileProcessing = source -> {
 		try {
