@@ -101,7 +101,7 @@ public class TransactionImportServiceImpl implements TransactionImportService {
 				Date date = makeTransactionDate(record);
 				long amount = makeTransactionAmount(record);
 				if(getTransactionRepository().findByNK(id).isPresent()) {
-					LOGGER.info(
+					LOGGER.error(
 							"Transaction already registered. Id {} in file {}",
 							id,
 							importCSV.getBatch().getFilename()

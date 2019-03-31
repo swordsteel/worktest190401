@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import test.work.entities.Batch;
 import test.work.entities.Description;
+import test.work.entities.Transaction;
 import test.work.repositories.BatchRepository;
 import test.work.repositories.DescriptionRepository;
 import test.work.repositories.TransactionRepository;
@@ -39,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -218,6 +220,14 @@ class TransactionImportServiceImplTest {
 		getTransactionImportService().process(processFile);
 		assertEquals(1, noTransactions);
 		verify(mockAppender, times(2)).doAppend(captorLoggingEvent.capture());
+	}
+
+	@Test
+	void whenTransactionInDatabase_thenLoggedErrors() throws IOException {
+		when(transactionRepository.findByNK(anyInt())).thenReturn(Optional.of(new Transaction()));
+		Path processFile = new ClassPathResource("files/tiny.csv").getFile().toPath();
+		getTransactionImportService().process(processFile);
+		verify(mockAppender).doAppend(captorLoggingEvent.capture());
 	}
 
 }
