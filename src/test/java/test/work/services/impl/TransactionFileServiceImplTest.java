@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
@@ -45,8 +46,18 @@ class TransactionFileServiceImplTest {
 			return new TransactionFileServiceImpl() {
 
 				@Override
+				public Path getProcessFolder() {
+					return TransactionFileServiceImplTest.jimfsProcessFolder;
+				}
+
+				@Override
 				public Path getWatchFolder() {
 					return TransactionFileServiceImplTest.jimfsWatchFolder;
+				}
+
+				@Override
+				public Supplier<String> getPrefix() {
+					return () -> "";
 				}
 
 			};
@@ -54,6 +65,7 @@ class TransactionFileServiceImplTest {
 
 	}
 
+	private static Path jimfsProcessFolder;
 	private static Path jimfsWatchFolder;
 
 	@Captor
@@ -62,6 +74,8 @@ class TransactionFileServiceImplTest {
 	private Appender<ILoggingEvent> mockAppender;
 	private FileSystem fileSystem;
 	private Logger logger;
+	@Value("${folder.process}")
+	private String processFolder;
 	@Value("${folder.watch}")
 	private String watchFolder;
 	@Autowired
@@ -74,6 +88,8 @@ class TransactionFileServiceImplTest {
 		fileSystem = Jimfs.newFileSystem(Configuration.unix());
 		jimfsWatchFolder = fileSystem.getPath(watchFolder);
 		Files.createDirectory(jimfsWatchFolder);
+		jimfsProcessFolder = fileSystem.getPath(processFolder);
+		Files.createDirectory(jimfsProcessFolder);
 	}
 
 	@AfterEach
@@ -82,9 +98,15 @@ class TransactionFileServiceImplTest {
 		fileSystem.close();
 	}
 
+	private Path copyResourceFile(String filename, Path target) throws IOException {
+		Path newPath = target.resolve(filename);
+		Files.copy(new ClassPathResource("files/"+filename).getFile().toPath(), newPath);
+		return newPath;
+	}
+
 	@Test
 	void whenReadingFolder_thenFindFile() throws IOException {
-		Files.copy(new ClassPathResource("files/img.jpg").getFile().toPath(), jimfsWatchFolder.resolve("img.jpg"));
+		copyResourceFile("img.jpg", jimfsWatchFolder);
 		long noFiles = ((TransactionFileServiceImpl) transactionFileService).getFilesInWatchFolder().get().count();
 		assertEquals(1, noFiles);
 	}
@@ -107,6 +129,14 @@ class TransactionFileServiceImplTest {
 		final LoggingEvent loggingEvent = captorLoggingEvent.getValue();
 		assertEquals(loggingEvent.getLevel(), Level.ERROR);
 		assertEquals("Path cannot be null", loggingEvent.getFormattedMessage());
+	}
+
+	@Test
+	void whenWatchFolderProcessing_thenFileIsMoved() throws IOException {
+		Path source = copyResourceFile("img.jpg", jimfsWatchFolder);
+		Path target = jimfsProcessFolder.resolve("img.jpg");
+		Path newPath = ((TransactionFileServiceImpl) transactionFileService).getFileProcessing().apply(source);
+		assertEquals(target, newPath);
 	}
 
 }
