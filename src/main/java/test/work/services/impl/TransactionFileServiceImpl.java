@@ -1,6 +1,8 @@
 package test.work.services.impl;
 
 import lombok.Getter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,8 @@ import java.util.stream.Stream;
 @Service
 public class TransactionFileServiceImpl implements TransactionFileService {
 
+	protected static final Logger LOGGER = LoggerFactory.getLogger(TransactionFileServiceImpl.class);
+
 	private Path watchFolder;
 
 	@Value("${folder.watch}")
@@ -30,6 +34,7 @@ public class TransactionFileServiceImpl implements TransactionFileService {
 			return Files.list(getWatchFolder());
 		}
 		catch(IOException e) {
+			LOGGER.error("Error occurred while listing file in: {}", getWatchFolder(), e);
 			return Stream.of();
 		}
 	};
