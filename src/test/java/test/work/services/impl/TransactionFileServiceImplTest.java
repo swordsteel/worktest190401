@@ -150,4 +150,13 @@ class TransactionFileServiceImplTest {
 		assertEquals("Error occurred while moving file /watch/img.jpg to folder /process", loggingEvent.getFormattedMessage());
 	}
 
+	@Test
+	void whenWatchFolderProcessingNullPath_thenExpectNull_andErrorLogged() {
+		assertNull(((TransactionFileServiceImpl) transactionFileService).getFileProcessing().apply(null));
+		verify(mockAppender).doAppend(captorLoggingEvent.capture());
+		final LoggingEvent loggingEvent = captorLoggingEvent.getValue();
+		assertEquals(loggingEvent.getLevel(), Level.ERROR);
+		assertEquals("Path cannot be null", loggingEvent.getFormattedMessage());
+	}
+
 }

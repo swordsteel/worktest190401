@@ -44,8 +44,11 @@ public class TransactionFileServiceImpl implements TransactionFileService {
 		}
 		catch(IOException e) {
 			LOGGER.error("Error occurred while moving file {} to folder {}", source, getProcessFolder(), e);
-			return null;
 		}
+		catch(NullPointerException e) {
+			LOGGER.error("Path cannot be null", e);
+		}
+		return null;
 	};
 
 	private Function<Path, Path> processTargetPath = source -> getProcessFolder()
