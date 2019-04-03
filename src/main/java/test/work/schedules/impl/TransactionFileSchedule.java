@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Getter
-@PropertySource("transaction.properties")
+@PropertySource("classpath:transaction.properties")
 public class TransactionFileSchedule implements Schedule {
 
 	@Autowired
