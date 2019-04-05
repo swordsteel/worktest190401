@@ -34,3 +34,19 @@ Run the application locally:
 ```shell
 mvn spring-boot:run
 ```
+
+to view the page go to:
+```
+http://localhost/
+```
+
+## CSV format:
+
+Data needed for a successful post import is id, date, description and amount:
+```
+1,2019/04/05,description,0.00
+```
+There is a possibility to add extra information after but this will be ignored by the import:
+```
+1,2019/04/05,description,0.00,comment
+```
